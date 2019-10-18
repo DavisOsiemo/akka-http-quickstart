@@ -36,6 +36,32 @@ trait UserRoutes extends JsonSupport {
   //#all-routes
   //#users-get-post
   //#users-get-delete
+  lazy val myRoutes: Route =
+  pathPrefix("newusers") {
+    concat(
+      pathEnd {
+        concat (
+          post {
+            entity(as[Item]) {
+              item =>
+                val itemCreated: Future[ActionPerformed2] =
+                  (userRegistryActor ? CreateItem(item)).mapTo[ActionPerformed2]
+                onSuccess(itemCreated) { performed =>
+                  log.info("Created item [{}]: {}", item.name, performed.message)
+                  complete((StatusCodes.Created), performed)
+                }
+            }
+          },
+          get {
+            val items: Future[Items] =
+              (userRegistryActor ? GetItems).mapTo[Items]
+            complete(items)
+          }
+          )
+      }
+    )
+  }
+
   lazy val userRoutes: Route =
     pathPrefix("users") {
       concat(
@@ -58,19 +84,7 @@ trait UserRoutes extends JsonSupport {
                 }
               }
             },
-            path("create") {
-              post {
-                entity(as[Item]) {
-                  item =>
-                    val itemCreated: Future[ActionPerformed2] =
-                      (userRegistryActor ? CreateItem(item)).mapTo[ActionPerformed2]
-                    onSuccess(itemCreated) { performed =>
-                      log.info("Created item [{}]: {}", item.name, performed.message)
-                      complete((StatusCodes.Created), performed)
-                    }
-                }
-              }
-            })
+            )
         },
         //#users-get-post
         //#users-get-delete

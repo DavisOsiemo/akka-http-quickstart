@@ -16,6 +16,7 @@ object UserRegistryActor {
   final case class ActionPerformed2(message: String)
 
   final case object GetUsers
+  final case object GetItems
   final case class CreateUser(user: User)
   final case class GetUser(name: String)
   final case class DeleteUser(name: String)
@@ -41,7 +42,9 @@ class UserRegistryActor extends Actor with ActorLogging {
 
     case CreateItem(item) =>
       items += item
-      sender() ! ActionPerformed2(s"Item ${}")
+      sender() ! ActionPerformed2(s"Item ${item.name} created.")
+    case GetItems =>
+      sender() ! Items(items.toSeq)
 
     case GetUser(name) =>
       sender() ! users.find(_.name == name)
